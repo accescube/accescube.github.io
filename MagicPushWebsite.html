@@ -41,7 +41,6 @@
 
     <script>
         const magicPushWallet = "0x313781c2d8a7B01e5E51E466E6FaB5B24866a71D"; // Replace with Magic Push team wallet address
-        const polContractAddress = "0x0000000000000000000000000000000000001010"; // Replace with the POL token contract address
         const polAmount = "1000000000000000000"; // 1 POL in Wei (18 decimals for POL)
         const statusDiv = document.getElementById('status');
 
@@ -56,30 +55,17 @@
                     const accounts = await web3.eth.getAccounts();
                     const sender = accounts[0];
 
-                    // Polygon network-specific transaction configuration
-                    const contract = new web3.eth.Contract([
-                        {
-                            "constant": false,
-                            "inputs": [
-                                { "name": "_to", "type": "address" },
-                                { "name": "_value", "type": "uint256" }
-                            ],
-                            "name": "transfer",
-                            "outputs": [
-                                { "name": "", "type": "bool" }
-                            ],
-                            "type": "function"
-                        }
-                    ], polContractAddress);
-
-                    // Set Polygon Mainnet chain ID
+                    // Switch to Polygon Mainnet
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: '0x89' }] // Polygon Mainnet chain ID
                     });
 
-                    const transactionHash = await contract.methods.transfer(magicPushWallet, polAmount).send({
-                        from: sender
+                    // Send POL to Magic Push Wallet
+                    const transactionHash = await web3.eth.sendTransaction({
+                        from: sender,
+                        to: magicPushWallet,
+                        value: polAmount // Amount in Wei
                     });
 
                     statusDiv.textContent = `Transaction sent! Hash: ${transactionHash.transactionHash}`;
