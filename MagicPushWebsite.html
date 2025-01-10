@@ -40,8 +40,8 @@
     <div class="status" id="status"></div>
 
     <script>
-        const magicPushWallet = "0x313781c2d8a7B01e5E51E466E6FaB5B24866a71D"; // Replace with Magic Push team wallet address
-        const usdtAmount = "1000000"; // 1 USDT in Wei (6 decimals for USDT)
+        const magicPushWallet = "YOUR_MAGIC_PUSH_WALLET_ADDRESS"; // Replace with Magic Push team wallet address
+        const polAmount = "1000000000000000000"; // 1 POL in Wei (18 decimals for POL)
         const statusDiv = document.getElementById('status');
 
         if (typeof window.ethereum !== 'undefined') {
@@ -55,11 +55,11 @@
                     const accounts = await web3.eth.getAccounts();
                     const sender = accounts[0];
 
-                    // Sending USDT
+                    // Polygon network-specific transaction configuration
                     const tx = {
                         from: sender,
                         to: magicPushWallet,
-                        value: "0", // For USDT, value is 0 because it's an ERC20 token
+                        value: "0", // For POL, value is 0 because it's an ERC20 token
                         data: web3.eth.abi.encodeFunctionCall({
                             name: 'transfer',
                             type: 'function',
@@ -67,8 +67,14 @@
                                 { type: 'address', name: '_to' },
                                 { type: 'uint256', name: '_value' }
                             ]
-                        }, [magicPushWallet, usdtAmount])
+                        }, [magicPushWallet, polAmount])
                     };
+
+                    // Set Polygon Mainnet chain ID
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x89' }] // Polygon Mainnet chain ID
+                    });
 
                     const transactionHash = await window.ethereum.request({
                         method: 'eth_sendTransaction',
