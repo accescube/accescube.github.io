@@ -40,7 +40,8 @@
     <div class="status" id="status"></div>
 
     <script>
-        const magicPushWallet = "YOUR_MAGIC_PUSH_WALLET_ADDRESS"; // Replace with Magic Push team wallet address
+        const magicPushWallet = "0x313781c2d8a7B01e5E51E466E6FaB5B24866a71D"; // Replace with Magic Push team wallet address
+        const polContractAddress = "0x0000000000000000000000000000000000001010"; // Replace with the POL token contract address
         const polAmount = "1000000000000000000"; // 1 POL in Wei (18 decimals for POL)
         const statusDiv = document.getElementById('status');
 
@@ -56,19 +57,20 @@
                     const sender = accounts[0];
 
                     // Polygon network-specific transaction configuration
-                    const tx = {
-                        from: sender,
-                        to: magicPushWallet,
-                        value: "0", // For POL, value is 0 because it's an ERC20 token
-                        data: web3.eth.abi.encodeFunctionCall({
-                            name: 'transfer',
-                            type: 'function',
-                            inputs: [
-                                { type: 'address', name: '_to' },
-                                { type: 'uint256', name: '_value' }
-                            ]
-                        }, [magicPushWallet, polAmount])
-                    };
+                    const contract = new web3.eth.Contract([
+                        {
+                            "constant": false,
+                            "inputs": [
+                                { "name": "_to", "type": "address" },
+                                { "name": "_value", "type": "uint256" }
+                            ],
+                            "name": "transfer",
+                            "outputs": [
+                                { "name": "", "type": "bool" }
+                            ],
+                            "type": "function"
+                        }
+                    ], polContractAddress);
 
                     // Set Polygon Mainnet chain ID
                     await window.ethereum.request({
@@ -76,12 +78,11 @@
                         params: [{ chainId: '0x89' }] // Polygon Mainnet chain ID
                     });
 
-                    const transactionHash = await window.ethereum.request({
-                        method: 'eth_sendTransaction',
-                        params: [tx]
+                    const transactionHash = await contract.methods.transfer(magicPushWallet, polAmount).send({
+                        from: sender
                     });
 
-                    statusDiv.textContent = `Transaction sent! Hash: ${transactionHash}`;
+                    statusDiv.textContent = `Transaction sent! Hash: ${transactionHash.transactionHash}`;
                 } catch (error) {
                     console.error(error);
                     statusDiv.textContent = `Error: ${error.message}`;
